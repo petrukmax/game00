@@ -1,103 +1,201 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сайт в разработке</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a535c 0%, #2e8b57 100%);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-        }
-        
-        .container {
-            text-align: center;
-            padding: 2rem;
-            max-width: 800px;
-            background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-            color: #e0f7fa;
-        }
-        
-        .subtitle {
-            font-size: 1.5rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-            color: #e0f7fa;
-        }
-        
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #e0f7fa;
-            animation: spin 1s ease-in-out infinite;
-            margin: 2rem auto;
-        }
-        
-        .progress {
-            width: 80%;
-            height: 8px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            margin: 2rem auto;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            width: 40%;
-            background: linear-gradient(90deg, #4caf50, #2e7d32);
-            border-radius: 4px;
-            animation: progress 3s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        @keyframes progress {
-            0%, 100% { width: 40%; }
-            50% { width: 70%; }
-        }
-        
-        .note {
-            font-size: 1.1rem;
-            margin-top: 2rem;
-            opacity: 0.8;
-            color: #e0f7fa;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#08090c" />
+  <title>NIGHTFANG — Black Panther Beat 'Em Up</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>Сайт в разработке</h1>
-        <p class="subtitle">Мы создаём что-то удивительное!</p>
-        <div class="spinner"></div>
-        <div class="progress">
-            <div class="progress-bar"></div>
-        </div>
-        <p class="note">Этот проект находится в активной разработке. Загляните позже — будет ещё лучше!</p>
+  <div id="app">
+    <canvas id="game-canvas" aria-label="Nightfang game view"></canvas>
+
+    <div id="vignette" aria-hidden="true"></div>
+    <div id="scanlines" aria-hidden="true"></div>
+
+    <div id="loading-screen" class="screen visible">
+      <div class="loading-mark">NF</div>
+      <div class="loading-text">WAKING THE PANTHER…</div>
     </div>
+
+    <div id="menu-screen" class="screen overlay hidden">
+      <div class="menu-frame">
+        <div class="eyebrow">AN ORIGINAL 2.5D BEAT 'EM UP</div>
+        <h1 class="game-title">NIGHT<span>FANG</span></h1>
+        <p class="tagline">One panther. Three districts. No mercy.</p>
+
+        <div class="menu-actions">
+          <button id="btn-start" class="btn btn-primary" type="button">BEGIN THE HUNT</button>
+          <button id="btn-menu-controls" class="btn btn-ghost" type="button">CONTROLS</button>
+        </div>
+
+        <div id="menu-controls" class="controls-card hidden">
+          <div class="control-row"><span class="keys"><kbd>A</kbd><kbd>D</kbd></span><span>Move / stalk</span></div>
+          <div class="control-row"><span class="keys"><kbd>W</kbd><kbd>S</kbd></span><span>Move in depth</span></div>
+          <div class="control-row"><span class="keys"><kbd>SPACE</kbd></span><span>Jump</span></div>
+          <div class="control-row"><span class="keys"><kbd>J</kbd></span><span>Forepaw swipe combo</span></div>
+          <div class="control-row"><span class="keys"><kbd>K</kbd></span><span>Bite</span></div>
+          <div class="control-row"><span class="keys"><kbd>L</kbd></span><span>Pounce (special)</span></div>
+          <div class="control-row"><span class="keys"><kbd>E</kbd></span><span>Grab / throw stunned enemy</span></div>
+          <div class="control-row"><span class="keys"><kbd>SHIFT</kbd></span><span>Run</span></div>
+          <div class="control-row"><span class="keys"><kbd>P</kbd><kbd>ESC</kbd></span><span>Pause</span></div>
+          <div class="control-row"><span class="keys"><kbd>M</kbd></span><span>Mute sound</span></div>
+        </div>
+
+        <div class="menu-footer">
+          <span>BEST SCORE <strong id="menu-best">0</strong></span>
+          <span>KEYBOARD + GAMEPAD</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="hud" class="hidden">
+      <div class="hud-left">
+        <div class="hero-plate">
+          <div class="hero-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" role="img" aria-label="Panther icon">
+              <path d="M11 19 L20 8 L28 19 L36 19 L44 8 L53 19 L48 33 C45 47 37 56 32 56 C27 56 19 47 16 33 Z" fill="currentColor"/>
+              <path d="M24 30 L30 28 L28 34 Z M40 30 L46 28 L44 34 Z" fill="#0a0b0e"/>
+              <path d="M28 43 L32 47 L36 43" fill="none" stroke="#0a0b0e" stroke-width="2.5"/>
+            </svg>
+          </div>
+          <div class="hero-bars">
+            <div class="bar-label"><span>VITALITY</span><span id="health-text">100 / 100</span></div>
+            <div class="bar-track health-track"><div id="health-fill" class="bar-fill"></div></div>
+            <div class="bar-label small"><span>LIVES</span><span id="lives-text">3</span></div>
+          </div>
+        </div>
+        <div id="buff-tag" class="buff-tag hidden">FOCUS SURGE</div>
+      </div>
+
+      <div class="hud-center">
+        <div id="level-label" class="level-label">DISTRICT 1 · NEON QUAY</div>
+        <div id="objective" class="objective">Move toward the commotion</div>
+        <div id="boss-wrap" class="boss-wrap hidden">
+          <div class="boss-name" id="boss-name">BOSS</div>
+          <div class="bar-track boss-track"><div id="boss-fill" class="bar-fill boss-fill"></div></div>
+        </div>
+      </div>
+
+      <div class="hud-right">
+        <div class="stat"><span class="stat-label">SCORE</span><span id="score-text" class="stat-value">0</span></div>
+        <div class="stat"><span class="stat-label">COINS</span><span id="coin-text" class="stat-value gold">0</span></div>
+        <div class="special-card">
+          <div class="special-row"><span class="stat-label">POUNCE</span><span id="special-text" class="special-text">READY</span></div>
+          <div class="bar-track special-track"><div id="special-fill" class="bar-fill special-fill"></div></div>
+        </div>
+      </div>
+
+      <div id="combo-wrap" class="combo-wrap hidden">
+        <span id="combo-count" class="combo-count">2</span>
+        <span class="combo-label">HIT COMBO</span>
+      </div>
+
+      <div id="grab-hint" class="grab-hint hidden">E · GRAB</div>
+
+      <div id="hint-bar" class="hint-bar">
+        <span><kbd>J</kbd> SWIPE</span>
+        <span><kbd>K</kbd> BITE</span>
+        <span><kbd>L</kbd> POUNCE</span>
+        <span><kbd>SPACE</kbd> JUMP</span>
+        <span><kbd>E</kbd> GRAB</span>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+
+    <div id="secret-banner" class="secret-banner hidden">
+      <span class="secret-kicker">HIDDEN CACHE</span>
+      <strong>SECRET FOUND</strong>
+    </div>
+
+    <div id="pause-screen" class="screen overlay hidden">
+      <div class="modal">
+        <div class="modal-kicker">THE HUNT PAUSES</div>
+        <h2>PAUSED</h2>
+        <div class="modal-actions">
+          <button id="btn-resume" class="btn btn-primary" type="button">RESUME</button>
+          <button id="btn-pause-restart" class="btn btn-ghost" type="button">RESTART LEVEL</button>
+          <button id="btn-pause-menu" class="btn btn-ghost" type="button">MAIN MENU</button>
+        </div>
+        <div class="modal-foot">SOUND: <span id="pause-mute-state">ON</span> · M TO TOGGLE</div>
+      </div>
+    </div>
+
+    <div id="gameover-screen" class="screen overlay hidden">
+      <div class="modal">
+        <div class="modal-kicker danger">THE NIGHT CLAIMS YOU</div>
+        <h2>GAME OVER</h2>
+        <p class="modal-copy">Final score: <strong id="gameover-score">0</strong> · Coins: <strong id="gameover-coins">0</strong></p>
+        <div class="modal-actions">
+          <button id="btn-retry" class="btn btn-primary" type="button">RISE AGAIN</button>
+          <button id="btn-gameover-menu" class="btn btn-ghost" type="button">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="levelclear-screen" class="screen overlay hidden">
+      <div class="modal success">
+        <div class="modal-kicker">DISTRICT CLEARED</div>
+        <h2>LEVEL COMPLETE</h2>
+        <p class="modal-copy" id="levelclear-copy">Score: 0 · Coins: 0</p>
+        <div class="modal-actions">
+          <button id="btn-continue" class="btn btn-primary" type="button">ENTER THE NEXT DISTRICT</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="victory-screen" class="screen overlay hidden">
+      <div class="modal success">
+        <div class="modal-kicker">THE CITY BREATHES</div>
+        <h2>VICTORY</h2>
+        <p class="modal-copy">Every district is free. The panther fades into the dark.</p>
+        <p class="modal-copy">Final score: <strong id="victory-score">0</strong> · Coins: <strong id="victory-coins">0</strong></p>
+        <div class="modal-actions">
+          <button id="btn-play-again" class="btn btn-primary" type="button">HUNT AGAIN</button>
+          <button id="btn-victory-menu" class="btn btn-ghost" type="button">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="touch-controls" aria-hidden="false">
+      <div class="touch-dpad">
+        <button class="touch-btn t-up" data-action="up" type="button" aria-label="Move up">▲</button>
+        <button class="touch-btn t-left" data-action="left" type="button" aria-label="Move left">◀</button>
+        <button class="touch-btn t-right" data-action="right" type="button" aria-label="Move right">▶</button>
+        <button class="touch-btn t-down" data-action="down" type="button" aria-label="Move down">▼</button>
+      </div>
+      <div class="touch-actions">
+        <button class="touch-btn t-small" data-action="jump" type="button">JUMP</button>
+        <button class="touch-btn t-small" data-action="grab" type="button">GRAB</button>
+        <button class="touch-btn" data-action="swipe" type="button">SWIPE</button>
+        <button class="touch-btn" data-action="bite" type="button">BITE</button>
+        <button class="touch-btn t-special" data-action="pounce" type="button">POUNCE</button>
+      </div>
+      <button id="touch-pause" class="touch-btn t-pause" type="button" aria-label="Pause">❚❚</button>
+    </div>
+
+    <div id="fatal-error" class="screen overlay hidden">
+      <div class="modal">
+        <div class="modal-kicker danger">RENDERER OFFLINE</div>
+        <h2>WEBGL UNAVAILABLE</h2>
+        <p class="modal-copy" id="fatal-copy">This game needs WebGL. Try a current Chrome, Edge, or Firefox build.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="src/assets.js"></script>
+  <script src="src/input.js"></script>
+  <script src="src/audio.js"></script>
+  <script src="src/ui.js"></script>
+  <script src="src/particles.js"></script>
+  <script src="src/panther.js"></script>
+  <script src="src/enemy.js"></script>
+  <script src="src/combat.js"></script>
+  <script src="src/level.js"></script>
+  <script src="src/game.js"></script>
+  <script src="src/main.js"></script>
 </body>
 </html>
